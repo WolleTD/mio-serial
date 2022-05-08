@@ -880,21 +880,22 @@ impl Source for SerialStream {
     }
 }
 
-/// An extension trait for SerialPortBuilder
+/// An extension trait for SerialPortBuilder to open a `SerialStream` from it.
 ///
-/// This trait adds an additional method to SerialPortBuilder:
-///
-/// - open_native_async
-///
-/// These methods mirror the `open_native` methods of SerialPortBuilder
+/// This trait adds an `open_mio` method to `SerialPortBuilder` that will
+/// open a `mio_serial::SerialStream` from the configuration.
 pub trait SerialPortBuilderExt {
-    /// Open a platform-specific interface to the port with the specified settings
-    fn open_native_async(self) -> Result<SerialStream>;
+    /// Open a platform-independent interface to the port with the specified settings
+    fn open_mio(self) -> Result<SerialStream>;
+
+    /// Open a platform-independent interface to the port with the specified settings
+    #[deprecated(since = "5.1", note="use `open_mio` instead")]
+    fn open_native_async(self) -> Result<SerialStream> where Self: Sized { self.open_mio() }
 }
 
 impl SerialPortBuilderExt for SerialPortBuilder {
-    /// Open a platform-specific interface to the port with the specified settings
-    fn open_native_async(self) -> Result<SerialStream> {
+    /// Open a platform-independent interface to the port with the specified settings
+    fn open_mio(self) -> Result<SerialStream> {
         SerialStream::open(&self)
     }
 }

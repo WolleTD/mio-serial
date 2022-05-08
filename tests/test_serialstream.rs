@@ -13,7 +13,7 @@ fn test_builder_open_async() {
     let builder = mio_serial::new(fixture.port_a, baud_rate);
 
     let stream = builder
-        .open_native_async()
+        .open_mio()
         .expect("unable to open serial port");
 
     common::assert_baud_rate(&stream, baud_rate)
@@ -78,10 +78,10 @@ fn test_read_write_pair() {
     let (mut poll, mut events) = common::init_with_poll();
 
     let mut port_1 = mio_serial::new(port_a, baud_rate)
-        .open_native_async()
+        .open_mio()
         .expect(format!("unable to open serial port {}", port_a).as_str());
     let mut port_2 = mio_serial::new(port_b, baud_rate)
-        .open_native_async()
+        .open_mio()
         .expect(format!("unable to open serial port {}", port_b).as_str());
 
     // register both serial ports for read and write events
