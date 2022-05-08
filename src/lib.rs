@@ -509,8 +509,8 @@ impl crate::SerialPort for SerialStream {
     ///
     /// Maybe it can be done with more work, but until a clear use-case is required (or mio/tokio
     /// gets an equivalent of the unix `AsyncFd` for async file handles, see
-    /// https://github.com/tokio-rs/tokio/issues/3781 and
-    /// https://github.com/tokio-rs/tokio/pull/3760#issuecomment-839854617) I would rather not
+    /// <https://github.com/tokio-rs/tokio/issues/3781> and
+    /// <https://github.com/tokio-rs/tokio/pull/3760#issuecomment-839854617>) I would rather not
     /// have any code available over a kind-of-works-maybe impl.  So I'll leave this code here
     /// for now but hard-code it disabled.
     fn try_clone(&self) -> crate::Result<Box<dyn crate::SerialPort>> {
