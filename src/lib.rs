@@ -24,7 +24,6 @@ pub use serialport::{
     Result,
     // Traits
     SerialPort,
-    SerialPortBuilder,
     SerialPortInfo,
     SerialPortType,
     StopBits,
@@ -33,9 +32,6 @@ pub use serialport::{
 
 // Re-export port-enumerating utility function.
 pub use serialport::available_ports;
-
-// Re-export creation of SerialPortBuilder objects
-pub use serialport::new;
 
 use mio::{event::Source, Interest, Registry, Token};
 use std::convert::TryFrom;
@@ -880,22 +876,54 @@ impl Source for SerialStream {
     }
 }
 
-/// An extension trait for SerialPortBuilder to open a `SerialStream` from it.
-///
-/// This trait adds an `open_mio` method to `SerialPortBuilder` that will
-/// open a `mio_serial::SerialStream` from the configuration.
-pub trait SerialPortBuilderExt {
-    /// Open a platform-independent interface to the port with the specified settings
-    fn open_mio(self) -> Result<SerialStream>;
+/// An extension trait for SerialPortBuilder
+#[deprecated(since = "5.1", note="mio_serial now has it's own SerialPortBuilder type")]
+pub trait SerialPortBuilderExt {}
 
-    /// Open a platform-independent interface to the port with the specified settings
-    #[deprecated(since = "5.1", note="use `open_mio` instead")]
-    fn open_native_async(self) -> Result<SerialStream> where Self: Sized { self.open_mio() }
+/// A builder of `SerialStream` objects.
+///
+/// This wraps around [`serialport::SerialPortBuilder`] and uses `Deref` to provide
+/// it's methods, but replaces `open()` to return a [`SerialStream`] instead.
+///
+/// See `SerialPortBuilder` docs for provided methods.
+///
+/// [`serialport::SerialPortBuilder`]: struct@serialport::SerialPortBuilder
+/// [`SerialStream`]: struct@crate::SerialStream
+pub struct SerialPortBuilder {
+    inner: serialport::SerialPortBuilder,
 }
 
-impl SerialPortBuilderExt for SerialPortBuilder {
-    /// Open a platform-independent interface to the port with the specified settings
-    fn open_mio(self) -> Result<SerialStream> {
+impl SerialPortBuilder {
+    /// Open a platform-independent `SerialStream` to the port with the specified settings
+    pub fn open(self) -> Result<SerialStream> {
         SerialStream::open(&self)
     }
+
+    /// Open a platform-independent `SerialStream` to the port with the specified settings
+    #[deprecated(since = "5.1", note="use `open` instead")]
+    pub fn open_native_async(self) -> Result<SerialStream> { self.open() }
+}
+
+impl std::ops::Deref for SerialPortBuilder {
+    type Target = serialport::SerialPortBuilder;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+/// Construct a builder of `SerialStream` objects.
+///
+/// This behaves exactly as [`serialport::new`], but wrapped to output a [`SerialStream`].
+///
+/// ```no_run
+/// use mio_serial::SerialStream;
+///
+/// let stream: SerialStream = mio_serial::new("/dev/ttyUSB0", 9600).open().unwrap();
+/// ```
+///
+/// [`serialport::new`]: method@serialport::new
+/// [`SerialStream`]: struct@crate::SerialStream
+pub fn new<'a>(path: impl Into<std::borrow::Cow<'a, str>>, baud_rate: u32) -> SerialPortBuilder {
+    SerialPortBuilder { inner: serialport::new(path, baud_rate) }
 }
